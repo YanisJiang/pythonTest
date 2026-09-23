@@ -3,7 +3,7 @@ import math
 import pygame
 from pygame.time import Clock
 
-from cus_math import add_rotation, projection_v3_to_v2, set_rotation
+from cus_math import add_rotation, get_normal, projection_v3_to_v2, set_rotation
 from space_2d import Vec2
 from space_3d import Cube, Vec3
 
@@ -15,15 +15,22 @@ screen = pygame.display.set_mode([500, 500])
 origin = Vec2(250, 250)
 focus = 200
 depth = 100
+camer = Vec3(0, 0, depth)
 
 cube = Cube(Vec3(0, 0, 0), 50)
-set_rotation(cube, Vec3(0, math.radians(90), 0))
+set_rotation(cube, Vec3(0, 0, 0))
 angle = math.radians(1)
-rotation_increment = Vec3(angle, 0, 0)
+rotation_increment = Vec3(math.radians(1), math.radians(1), math.radians(1))
 
 d_color = pygame.Color(0, 0, 0)
 clocks = Clock()
 running = True
+
+
+def face_depth(item):
+    face, color = item
+    return sum(cube.cur_points[i].z for i in face) / len(face)
+
 
 while running:
     screen.fill(d_color)
@@ -37,16 +44,24 @@ while running:
 
     add_rotation(cube, rotation_increment)
 
-    for i, j in cube.line_marks:
-        start_pos = projection_v3_to_v2(
-            cube.cur_points[i], origin, cube.scale, focus, depth
-        )
-        end_pos = projection_v3_to_v2(
-            cube.cur_points[j], origin, cube.scale, focus, depth
-        )
-        pygame.draw.line(screen, line_color, start_pos, end_pos, 1)
+    faces = list(zip(cube.faces, cube.faces_color))
+    faces = sorted(faces, key=face_depth, reverse=True)
+
+    for face, color in faces:
+        if get_normal(cube, face).dot(camer) > 0:
+            continue
+        else:
+            points = []
+            for i in face:
+                points.append(
+                    projection_v3_to_v2(
+                        cube.cur_points[i], origin, cube.scale, focus, depth
+                    )
+                )
+            pygame.draw.polygon(screen, color, points)
 
     pygame.display.flip()
     clocks.tick(60)
+
 
 pygame.quit()
