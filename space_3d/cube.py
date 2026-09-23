@@ -1,63 +1,7 @@
 from math import cos, sin
 
-from pygame import Color
-
-
-class Vec3:
-    x: float
-    y: float
-    z: float
-
-    def __init__(self, x: float, y: float, z: float):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def __add__(self, other):
-        return Vec3(self.x + other.x, self.y + other.y, self.z + other.z)
-
-    def __sub__(self, other):
-        return Vec3(self.x - other.x, self.y - other.y, self.z - other.z)
-
-    def __mul__(self, scale):
-        return Vec3(self.x * scale, self.y * scale, self.z * scale)
-
-    def __rmul__(self, scale):
-        return Vec3(self.x * scale, self.y * scale, self.z * scale)
-
-    def __truediv__(self, scale):
-        return Vec3(self.x / scale, self.y / scale, self.z / scale)
-
-    def dot(self, other):
-        return self.x * other.x + self.y * other.y + self.z * other.z
-
-    def cross(self, other):
-        return Vec3(
-            self.y * other.z - self.z * other.y,
-            self.z * other.x - self.x * other.z,
-            self.x * other.y - self.y * other.x,
-        )
-
-
-class Matrix3:
-    v1: Vec3
-    v2: Vec3
-    v3: Vec3
-
-    def __init__(self, v1: Vec3, v2: Vec3, v3: Vec3):
-        self.v1 = v1
-        self.v2 = v2
-        self.v3 = v3
-
-    def __mul__(self, other):
-        if isinstance(other, Vec3):
-            new_x = self.v1.x * other.x + self.v2.x * other.y + self.v3.x * other.z
-            new_y = self.v1.y * other.x + self.v2.y * other.y + self.v3.y * other.z
-            new_z = self.v1.z * other.x + self.v2.z * other.y + self.v3.z * other.z
-            return Vec3(new_x, new_y, new_z)
-        if isinstance(other, Matrix3):
-            return Matrix3(self * other.v1, self * other.v2, self * other.v3)
-        return NotImplemented
+from space_3d.matrix_3d import Matrix3
+from space_3d.vec3 import Vec3
 
 
 class Cube:
@@ -125,12 +69,12 @@ class Cube:
         ]
 
         self.faces_color = [
-            Color(255, 255, 255),
-            Color(255, 255, 0),
-            Color(0, 255, 0),
-            Color(0, 0, 255),
-            Color(255, 0, 0),
-            Color(255, 165, 0),
+            [255, 255, 255],
+            [255, 255, 0],
+            [0, 255, 0],
+            [0, 0, 255],
+            [255, 0, 0],
+            [255, 165, 0],
         ]
 
         self.rotate_matrix = Matrix3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1))
@@ -150,20 +94,6 @@ class Cube:
             self.origin_points.append(Vec3(new_x, new_y, new_z))
             self.cur_points.append(Vec3(new_x, new_y, new_z))
 
-    def add_rotation(self, rotation: Vec3):
-        self.rotation.x += rotation.x
-        self.rotation.y += rotation.y
-        self.rotation.z += rotation.z
-        self.update_delta_matrix(rotation)
-
-    def set_rotation(self, rotation: Vec3):
-        delta_rotation = Vec3(
-            rotation.x - self.rotation.x,
-            rotation.y - self.rotation.y,
-            rotation.z - self.rotation.z,
-        )
-        self.add_rotation(delta_rotation)
-
     def update_delta_matrix(self, rotation: Vec3):
         self.delta_x_matrix = Matrix3(
             Vec3(1, 0, 0),
@@ -182,3 +112,22 @@ class Cube:
             Vec3(sin(rotation.z), cos(rotation.z), 0),
             Vec3(0, 0, 1),
         )
+
+    def add_rotation(self, rotation: Vec3):
+        self.rotation += rotation
+        self.update_delta_matrix(rotation)
+
+        self.cur_points = []
+        self.rotate_matrix = (
+            self.rotate_matrix
+            * self.delta_x_matrix
+            * self.delta_y_matrix
+            * self.delta_z_matrix
+        )
+        for origin_point in self.origin_points:
+            cur_point = self.rotate_matrix * origin_point
+            self.cur_points.append(cur_point)
+
+    def set_rotation(self, rotation: Vec3):
+        delta_rotation = rotation - self.rotation
+        self.add_rotation(delta_rotation)
