@@ -44,3 +44,14 @@ def get_normal(cube: Cube, face: [int, int, int, int]) -> Vec3:
         normal = normal * -1
 
     return normal
+
+
+def get_face_center(cube: Cube, face: [int, int, int, int]) -> Vec3:
+    # faces 里存的是下标，要用 cur_points 取出旋转后的点
+    point1 = cube.cur_points[face[0]]
+    point2 = cube.cur_points[face[1]]
+    point3 = cube.cur_points[face[2]]
+    point4 = cube.cur_points[face[3]]
+
+    mean_point = (point1 + point2 + point3 + point4) * (1 / 3)
+    return mean_point

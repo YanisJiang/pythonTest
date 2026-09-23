@@ -3,7 +3,7 @@ import math
 import pygame
 from pygame.time import Clock
 
-from cus_math import add_rotation, get_normal, projection_v3_to_v2, set_rotation
+from cus_math import add_rotation, get_face_center, get_normal, projection_v3_to_v2, set_rotation
 from space_2d import Vec2
 from space_3d import Cube, Vec3
 
@@ -48,7 +48,7 @@ while running:
     faces = sorted(faces, key=face_depth, reverse=True)
 
     for face, color in faces:
-        if get_normal(cube, face).dot(camer) > 0:
+        if get_normal(cube, face).dot(camer - get_face_center(cube, face)) > 0:
             continue
         else:
             points = []
