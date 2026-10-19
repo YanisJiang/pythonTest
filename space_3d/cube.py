@@ -1,4 +1,4 @@
-from math import cos, sin
+from math import cos, radians, sin
 
 from space_3d.matrix_3d import Matrix3
 from space_3d.vec3 import Vec3
@@ -13,14 +13,14 @@ class Cube:
     scale: Vec3
 
     # 顶点偏移
-    __offsets: []
+    __offsets: list[Vec3]
     # 棱边
-    lines: []
+    lines: list[tuple[int,int]]
     # 面
-    faces: []
-    faces_color: []
-    origin_points: []
-    cur_points: []
+    faces: list[list[int]]
+    faces_color: list[list[int]]
+    origin_points: list[Vec3]
+    cur_points: list[Vec3]
 
     # 旋转矩阵
     rotate_matrix: Matrix3
@@ -97,19 +97,19 @@ class Cube:
     def update_delta_matrix(self, rotation: Vec3):
         self.delta_x_matrix = Matrix3(
             Vec3(1, 0, 0),
-            Vec3(0, cos(rotation.x), -sin(rotation.x)),
-            Vec3(0, sin(rotation.x), cos(rotation.x)),
+            Vec3(0, cos(radians(rotation.x)), -sin(radians(rotation.x))),
+            Vec3(0, sin(radians(rotation.x)), cos(radians(rotation.x))),
         )
 
         self.delta_y_matrix = Matrix3(
-            Vec3(cos(rotation.y), 0, -sin(rotation.y)),
+            Vec3(cos(radians(rotation.y)), 0, -sin(radians(rotation.y))),
             Vec3(0, 1, 0),
-            Vec3(sin(rotation.y), 0, cos(rotation.y)),
+            Vec3(sin(radians(rotation.y)), 0, cos(radians(rotation.y))),
         )
 
         self.delta_z_matrix = Matrix3(
-            Vec3(cos(rotation.z), -sin(rotation.z), 0),
-            Vec3(sin(rotation.z), cos(rotation.z), 0),
+            Vec3(cos(radians(rotation.z)), -sin(radians(rotation.z)), 0),
+            Vec3(sin(radians(rotation.z)), cos(radians(rotation.z)), 0),
             Vec3(0, 0, 1),
         )
 
